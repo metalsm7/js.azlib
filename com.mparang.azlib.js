@@ -671,6 +671,24 @@ azlib.string = {
 
 			return rtnValue;
 		};
+		String.prototype.toJSONSafeEncoding = function() {
+			return azlib.string.toJSONSafeEncoding(this);
+		};
+		String.prototype.toJSONSafeDecoding = function() {
+			return azlib.string.toJSONSafeDecoding(this);
+		};
+		String.prototype.toAZData = function() {
+			return azlib.string.toAZData(this);
+		};
+		String.prototype.getData = function() {
+			return azlib.string.toAZData(this);
+		};
+		String.prototype.toAZList = function() {
+			return azlib.string.toAZList(this);
+		};
+		String.prototype.getList = function() {
+			return azlib.string.toAZList(this);
+		};
 	},
 	/*
     fromEditorString: function (A) {
@@ -984,6 +1002,64 @@ azlib.string = {
             throw new Error('type 지정값에는 number, string, mix 값만 사용할 수 있습니다.');
         }
         return rtnValue;
+    },
+    toJSONSafeEncoding: function(A) {
+        A = azlib.string.replaceAll(A, '\\', '\\\\');
+        A = azlib.string.replaceAll(A, '"', '\\"');
+        A = azlib.string.replaceAll(A, '\b', '\\b');
+        A = azlib.string.replaceAll(A, '\f', '\\f');
+        A = azlib.string.replaceAll(A, '\n', '\\n');
+        A = azlib.string.replaceAll(A, '\r', '\\r');
+        A = azlib.string.replaceAll(A, '\t', '\\t');
+        return A;
+    },
+    toJSONSafeDecoding: function(A) {
+        A = azlib.string.replaceAll(A, '\\t', '\t');
+        A = azlib.string.replaceAll(A, '\\r', '\r');
+        A = azlib.string.replaceAll(A, '\\n', '\n');
+        A = azlib.string.replaceAll(A, '\\f', '\f');
+        A = azlib.string.replaceAll(A, '\\b', '\b');
+        A = azlib.string.replaceAll(A, '\\"', '"');
+        A = azlib.string.replaceAll(A, '\\\\', '\\');
+        return A;
+    },
+    getData: function(A) {
+    	return azlib.string.toAZData(A);
+    },
+    toAZData: function(A) {
+    	var rtnValue = new azlib.util.AZData();
+
+    	var json_obj = null;
+    	try { json_obj = JSON.parse(A); } catch (e) { new Error('json parsing error occured!!'); }
+
+    	if (json_obj != null) {
+			for (var name in json_obj) {
+				rtnValue.add(name, json_obj[name]);
+			}
+		}
+		return rtnValue;
+    },
+    getList: function(A) {
+    	return azlib.string.toAZList(A);
+    },
+    toAZList: function(A) {
+    	var rtnValue = new azlib.util.AZList();
+
+    	var json_obj = null;
+    	try { json_obj = JSON.parse(A); } catch (e) { new Error('json parsing error occured!!'); }
+
+    	if (json_obj != null) {
+			for (var cnti=0; cnti<json_obj.length; cnti++) {
+				var json_data = json_obj[cnti];
+				var data = new azlib.util.AZData();
+
+				for (var name in json_data) {
+					data.add(name, json_data[name]);
+				}
+				rtnValue.add(data);
+			}
+		}
+		return rtnValue;
     }
 };
 
@@ -1260,12 +1336,13 @@ azlib.graphic = {
  * azlib.util 하위 선언
  * date: create:2014-12-31 yonghun, lee
  */
+ /*
 azlib.util = {
 	/**
 	 * HashMap
 	 * usage: var a = new azlib.util.HashMap(); / var a = azlib.util.HashMap.init();
 	 * date: create:2014-12-31 yonghun, lee
-	 */
+	 *
 	HashMap: function() {	
 		var map = {};
 
@@ -1296,7 +1373,7 @@ azlib.util = {
         * 현재 브라우저의 모바일 여부 확인	// 작성일 : 2011-09-21 이용훈 from azfc
         * 
         * @return {boolean} : 해당 브라우저가 모바일 브라우저일 경우 true 반환/아니면 false
-        */
+        *
     isMobile: function () {
         var rtnValue = false;
         var mobileStr = 'iPhone|iPad|Mobile|UP.Browser|Android|BlackBerry|Windows CE|Nokia|webOS|Opera Mini|SonyEricsson|opera mobi|Windows Phone|IEMobile|POLARIS';
@@ -1341,6 +1418,7 @@ azlib.util = {
 azlib.util.HashMap.init = function() {
 	return new azlib.util.HashMap();
 }
+*/
 
 azlib.css3 = {
     support: null,
@@ -1518,20 +1596,21 @@ azlib.freeTransform = function(p_target) {
 // code for node.js
 
 azlib.text = {
-	AZString: function() {}
+	AZString: function(p_value) { this.value_string = p_value; }
 }
 azlib.text.AZString.prototype = {
+	value_string: '',
 	RANDOM_ALPHABET_ONLY: -101,
 	RANDOM_NUMBER_ONLY: -102,
 	RANDOM_ALPHABET_NUMBER: -103,
-	toInt: function(p_value, p_default_value) { 
+	toInt: function(p_default_value) { 
 		var rtnValue = p_default_value == undefined ? 0 : p_default_value;
-		if (!isNaN(p_value)) {
-			rtnValue = Number(p_value);
+		if (!isNaN(this.value_string)) {
+			rtnValue = Number(this.value_string);
 		}
 		return rtnValue; 
 	},
-	toString: function(p_value) { return String(p_value); },
+	toString: function() { return this.value_string },
 	getRandom: function(p_length, p_type_or_source, p_case_sensitive) {
 		var rtnValue = '';
 
@@ -1572,16 +1651,66 @@ azlib.text.AZString.prototype = {
 		}
 
 		return rtnValue;
+	},
+	toJSONSafeEncoding: function(p_value) {
+		return p_value.toJSONSafeEncoding();
+	},
+	toJSONSafeDecoding: function(p_value) {
+		return p_value.toJSONSafeDecoding();
 	}
 }
 
-azlib.text.AZString.init = function() { return new azlib.text.AZString(); }
+azlib.text.AZString.init = function(p_value) { return new azlib.text.AZString(p_value); }
 
 /**
  * 
  * 
  */
 azlib.util = {
+    /**
+        * 현재 브라우저의 모바일 여부 확인	// 작성일 : 2011-09-21 이용훈 from azfc
+        * 
+        * @return {boolean} : 해당 브라우저가 모바일 브라우저일 경우 true 반환/아니면 false
+        */
+    isMobile: function () {
+        var rtnValue = false;
+        var mobileStr = 'iPhone|iPad|Mobile|UP.Browser|Android|BlackBerry|Windows CE|Nokia|webOS|Opera Mini|SonyEricsson|opera mobi|Windows Phone|IEMobile|POLARIS';
+        var mobileArrs = mobileStr.split('|');
+
+        for (var cnti = 0; cnti < mobileArrs.length; cnti++) {
+            if (String(navigator.appVersion).indexOf(mobileArrs[cnti]) > - 1) {
+                rtnValue = true;
+                break;
+            }
+        }
+        return rtnValue;
+    },
+    isIOS: function () {
+        var rtnValue = false;
+        var mobileStr = 'iPhone|iPad';
+        var mobileArrs = mobileStr.split('|');
+
+        for (var cnti = 0; cnti < mobileArrs.length; cnti++) {
+            if (String(navigator.appVersion).indexOf(mobileArrs[cnti]) > - 1) {
+                rtnValue = true;
+                break;
+            }
+        }
+        return rtnValue;
+    },
+    isAndroid: function () {
+        var rtnValue = false;
+        var mobileStr = 'Android';
+        var mobileArrs = mobileStr.split('|');
+
+        for (var cnti = 0; cnti < mobileArrs.length; cnti++) {
+            if (String(navigator.appVersion).indexOf(mobileArrs[cnti]) > - 1) {
+                rtnValue = true;
+                break;
+            }
+        }
+        return rtnValue;
+    },
 	AZHashMap: function() {
 		this.map = [];
 	},
@@ -1596,11 +1725,12 @@ azlib.util = {
 	},
 	AZSql: function(p_json) {
 		this.sql_type = p_json.sql_type;
-		this.server_ip = p_json.server;
+		this.server = p_json.server;
 		this.port = p_json.port;
 		this.catalog = p_json.catalog;
 		this.id = p_json.id;
 		this.pw = p_json.pw;
+		this.connection_string = p_json.connection_string != undefined ? p_json.connection_string : '';
 	}
 }
 
@@ -1713,20 +1843,39 @@ azlib.util.AZData.prototype = {
 		var rtnValue = '';
 		for (var cnti=0; cnti<this.indexer.length; cnti++) {
 			if (this.get(cnti) instanceof azlib.util.AZData) {
-				rtnValue += (cnti > 0 ? ', ' : '') + this.getKey(cnti) + ':' + this.get(cnti).toJsonString();
+				rtnValue += (cnti > 0 ? ', ' : '') + '"' + this.getKey(cnti) + '"' + ':' + 
+					this.get(cnti).toString();
 			}
 			else if (this.get(cnti) instanceof azlib.util.AZList) {
-				rtnValue += (cnti > 0 ? ', ' : '') + this.getKey(cnti) + ':' + this.get(cnti).toJsonString();
+				rtnValue += (cnti > 0 ? ', ' : '') + '"' + this.getKey(cnti) + '"' + ':' + 
+					this.get(cnti).toString();
 			}
 			else {
 				var value_string = this.getString(cnti);
-				rtnValue += (cnti > 0 ? ', ' : '') + this.getKey(cnti) + ':' + '"' + value_string + '"';
+				rtnValue += (cnti > 0 ? ', ' : '') + '"' + this.getKey(cnti) + '"' + ':' + 
+					'"' + value_string + '"';
 			}
 		}
 		return rtnValue;
 	},
 	toJsonString: function() {
-		return '{' + this.toString() + '}';
+		var rtnValue = '';
+		for (var cnti=0; cnti<this.indexer.length; cnti++) {
+			if (this.get(cnti) instanceof azlib.util.AZData) {
+				rtnValue += (cnti > 0 ? ', ' : '') + '"' + this.getKey(cnti).toJSONSafeEncoding() + '"' + ':' + 
+					this.get(cnti).toJsonString();
+			}
+			else if (this.get(cnti) instanceof azlib.util.AZList) {
+				rtnValue += (cnti > 0 ? ', ' : '') + '"' + this.getKey(cnti).toJSONSafeEncoding() + '"' + ':' + 
+					this.get(cnti).toJsonString();
+			}
+			else {
+				var value_string = this.getString(cnti);
+				rtnValue += (cnti > 0 ? ', ' : '') + '"' + this.getKey(cnti).toJSONSafeEncoding() + '"' + ':' + 
+					'"' + value_string.toJSONSafeEncoding() + '"';
+			}
+		}
+		return '{' + rtnValue + '}';
 	}
 }
 
@@ -1769,12 +1918,18 @@ azlib.util.AZList.prototype = {
 		var rtnValue = '';
 		for (var cnti=0; cnti<this.size(); cnti++) {
 			var data = this.get(cnti);
-			rtnValue += (cnti > 0 ? ', ' : '') + data.toJsonString();
+			rtnValue += (cnti > 0 ? ', ' : '') + '{' + data.toString() + '}';
 		}
 		return rtnValue;
 	},
 	toJsonString: function() {
-		return '[' + this.toString() + ']';
+		var rtnValue = '';
+		for (var cnti=0; cnti<this.size(); cnti++) {
+			var data = this.get(cnti);
+			rtnValue += (cnti > 0 ? ', ' : '') + data.toJsonString();
+		}
+		return rtnValue;
+		return '[' + rtnValue + ']';
 	}
 }
 
@@ -1799,16 +1954,59 @@ azlib.util.AZSql.ATTRIBUTE_COLUMN_IS_READONLY = 'attribute_column_is_readonly';
 azlib.util.AZSql.ATTRIBUTE_COLUMN_IS_WRITABLE = 'attribute_column_is_writable';
 azlib.util.AZSql.ATTRIBUTE_COLUMN_IS_SIGNED = 'attribute_column_is_signed';
 
+azlib.util.AZSql.init = function() { return new azlib.util.AZSql(); }
 azlib.util.AZSql.prototype = {
 	sql_type: '', 
 	connection_string: '', 	// mysql://user:pass@host/db?debug=true&charset=BIG5_CHINESE_CI&timezone=-0700
-	server_ip: '',
+	server: '',
 	port: '', 
 	catalog: '', 
 	id: '', 
 	pw: '',
 	connected: false,
 	connection: null, 
+	set: function(p_json) {
+		if (p_json.sql_type.length < 1) {
+			new Error('sql_type not exist.');
+		}
+
+		this.sql_type = p_json.sql_type;
+
+		if (p_json.connection_string.length > 0) {
+			this.connection_string = p_json.connection_string;
+		}
+		else {
+			if (p_json.server.length < 1 || p_json.port < 0 || p_json.id.Length < 1 ||
+					p_json.pw.Length < 1 || p_json.catalog.Length < 1) {
+				new Error('parameters not exist.');
+			}
+
+			this.server = p_json.server;
+			this.port = p_json.port;
+			this.id = p_json.id;
+			this.pw = p_json.pw;
+			this.catalog = p_json.catalog;
+
+			switch (this.sql_type) {
+				case azlib.util.AZSql.SSQL_TYPE_MYSQL:
+					this.connection_string = 'mysql://' + this.id + ':' + this.pw + '@' + 
+						this.server + ':' + this.port + '/' + this.catalog;
+					break;
+				case azlib.util.AZSql.SSQL_TYPE_SQLITE:
+					break;
+				case azlib.util.AZSql.SSQL_TYPE_SQLITE_ANDROID:
+					break;
+				case azlib.util.AZSql.SSQL_TYPE_MSSQL:
+					break;
+				case azlib.util.AZSql.SSQL_TYPE_MARIADB:
+					break;
+				case azlib.util.AZSql.SSQL_TYPE_ORACLE:
+					break;
+			}
+		}
+
+		return this;
+	},
 	open: function(p_func) {
 		if (this.connected) {
 			return;
@@ -1823,7 +2021,7 @@ azlib.util.AZSql.prototype = {
 			else {
 				this.connection = sql.createConnection(
 				    {
-					    host: this.server_ip,
+					    host: this.server,
 					    port: this.port,
 					    user: this.id,
 					    password: this.pw,
