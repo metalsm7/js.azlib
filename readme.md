@@ -1,4 +1,4 @@
-# cs.azlib
+# js.azlib
 
 ##### *java, .net, node.js 에서 특정 동작에 대해 동일한 방식으로 사용하기 위한 라이브러리입니다.*
 
