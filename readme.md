@@ -20,25 +20,25 @@
 *(현재 지원 sql서버: mysql[json_data.dll 사용], sqlite[Mono.Data.Sqlite.dll 사용])*
 
 1) 초기화
-```javascript
+'''javascript
 var azlib = require('./com.mparang.azlib.js').node;
 var sql = azlib.util.AZSql.init('{"sql_type":"MSSQL_2000", "server":"127.0.0.1", "port":"1443", "id":"user", "pw":"password", "catalog":"database"}');
-```
+'''
 2) 쿼리 실행
 '''javascript
 sql.execute({"query":"SELECT 'Hello World!';", "success": null});
-```
+'''
 3) 쿼리 결과값 받아오기
 
 *단일 결과값*
-```c#
+'''javascript
 sql.get({"query":"SELECT id FROM user_info WHERE idx=1;';", "success": function(p_result) { var result = p_result; }});
-```
+'''
 *단행 결과값*
-```c#
+'''javascript
 sql.getData({"query":"SELECT TOP 1 id, name, email FROM user_info WHERE idx=1;';", "success": function(p_result) { var result = p_result; }});
-```
+'''
 *다행 결과값*
-```c#
+'''javascript
 sql.getList({"query":"SELECT TOP 5 id, name, email FROM user_info WHERE idx>=1;';", "success": function(p_result) { var result = p_result; }});
-```
+'''
