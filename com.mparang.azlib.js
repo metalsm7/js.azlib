@@ -1063,7 +1063,7 @@ azlib.string = {
     }
 };
 
-azlib.string.appendPrototype();
+//azlib.string.appendPrototype();
 
 azlib.form = {
 	/**
@@ -1596,71 +1596,318 @@ azlib.freeTransform = function(p_target) {
 // code for node.js
 
 azlib.text = {
-	AZString: function(p_value) { this.value_string = p_value; }
+	AZString: function(p_value) { this.value_object = p_value; }
 }
 azlib.text.AZString.prototype = {
-	value_string: '',
-	RANDOM_ALPHABET_ONLY: -101,
+	appendPrototype: function() {
+		String.prototype.RANDOM_TYPE = {
+			CHARACTER_ONLY: 'string',
+			NUMBER_ONLY: 'number',
+			CHARACTER_AND_NUMBER: 'mix'
+		}
+
+		String.prototype.toInt = function(p_default) {
+			return azlib.text.AZString.init(this).toInt(p_default);
+		};
+		String.prototype.byteLength = function() {
+			return azlib.text.AZString.init(this).byteLength();
+		};
+		String.prototype.random = function(p_length, p_source_string) {
+			return azlib.text.AZString.init().random(p_length, this);
+		};
+		String.prototype.repeat = function(p_length) {
+			return azlib.text.AZString.init(this).repeat(p_length);
+		};
+		String.prototype.format = function(p_input_format, p_output_format) {
+			return azlib.text.AZString.init(this).format(p_input_format, p_output_format);
+		};
+		String.prototype.replaceAll = function(p_target, p_replace) {
+			return azlib.text.AZString.init(this).replaceAll(p_target, p_replace);
+		};
+		String.prototype.reverse = function() {
+			return azlib.text.AZString.init(this).reverse();
+		};
+		String.prototype.encode = function(p_encode) {
+			return azlib.text.AZString.init(this).encode(p_encode);
+		};
+		String.prototype.decode = function(p_decode) {
+			return azlib.text.AZString.init(this).decode(p_decode);
+		};
+		String.prototype.startsWith = function(p_value) {
+			return (this.length > 0 && this.indexOf(p_value) == 0) ? true : false;
+		};
+		String.prototype.endsWith = function(p_value) {
+			return (this.lastIndexOf(p_value) > -1 && this.length > 0 && this.lastIndexOf(p_value) == (this.length - p_value.length)) ? true : false;
+		};
+		String.prototype.toAZData = function() {
+			return azlib.string.toAZData(this);
+		};
+		String.prototype.getData = function() {
+			return azlib.string.toAZData(this);
+		};
+		String.prototype.toAZList = function() {
+			return azlib.string.toAZList(this);
+		};
+		String.prototype.getList = function() {
+			return azlib.string.toAZList(this);
+		};
+	},
+	value_object: '',
+	ENCODE: {
+		SQL: 'SQL',
+		XSS: 'XSS',
+		JSON: 'JSON',
+		HTML: 'HTML',
+		XML: 'XML'
+	},
+	DECODE: {
+		SQL: 'SQL',
+		JSON: 'JSON',
+		HTML: 'HTML'
+	},
+	RANDOM_TYPE: {
+		ALPHABET_ONLY: 'ALPHABET_ONLY',
+		NUMBER_ONLY: 'NUMBER_ONLY',
+		ALPHABET_AND_NUMBER: 'ALPHABET_AND_NUMBER'
+	},
+	/*RANDOM_ALPHABET_ONLY: -101,
 	RANDOM_NUMBER_ONLY: -102,
-	RANDOM_ALPHABET_NUMBER: -103,
+	RANDOM_ALPHABET_NUMBER: -103,*/
 	toInt: function(p_default_value) { 
 		var rtnValue = p_default_value == undefined ? 0 : p_default_value;
-		if (!isNaN(this.value_string)) {
-			rtnValue = Number(this.value_string);
+		if (!isNaN(this.value_object)) {
+			rtnValue = Number(this.value_object);
 		}
 		return rtnValue; 
 	},
-	toString: function() { return this.value_string },
-	getRandom: function(p_length, p_type_or_source, p_case_sensitive) {
-		var rtnValue = '';
+	toString: function() { return this.value_object },
+	/**
+	 * Created in 2015-10-07, leeyonghun
+	 */
+    byteLength: function () {
+		var source = this.value_object;
+        var rtnValue = 0;
 
-		var length = p_length == undefined ? 5 : p_length;
-		var source_string = '';
+        for (var i = 0; i < source.length; i++) {
+            if (escape(source.charAt(i)).length >= 4) {
+                rtnValue += 2;
+            } else {
+                if (escape(source.charAt(i)) != "%0D")
+                ++rtnValue;
+            }
+        }
+        return rtnValue;
+    },
+	/**
+	 * Created in 2015-10-07, leeyonghun
+	 */
+	random: function(p_length, p_source_string) {
+		var rtn_value = '';
+		var length = p_length == undefined ? 6 : p_length;
+		var source_string = 
+			p_source_string == undefined ? 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
+				: p_source_string;
 		
-		if (p_type_or_source != undefined) {
-			if (typeof(p_type_or_source) == 'number') {
-				switch (p_type_or_source) {
-					case azlib.text.AZString.RANDOM_ALPHABET_ONLY:
-						source_string = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-						break;
-					case azlib.text.AZString.RANDOM_NUMBER_ONLY:
-						source_string = '1234567890';
-						break;
-					case azlib.text.AZString.RANDOM_ALPHABET_NUMBER:
-						source_string = '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-						break;
-				}
-			}
-			else {
-				source_string = p_type_or_source;
-			}
-
-		}
-		else {
-			source_string = '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-		}
-
-
-		if (p_case_sensitive == false) {
-			source_string = source_string.toUpperCase();
-		}
-
 		for (var cnti=0; cnti<length; cnti++) {
 			var rnd = Math.ceil(Math.random() * (source_string.length)) - 1;
-			rtnValue += source_string.charAt(rnd);
+			rtn_value += source_string.charAt(rnd);
 		}
+		return rtn_value;
+	},
+	/**
+	 * Created in 2015-10-07, leeyonghun
+	 */
+	repeat: function(p_length) {
+		var rtn_value = '';
+		for (var cnti=0; cnti<p_length; cnti++) {
+			rtn_value += this.value_object;
+		}
+		return rtn_value;
+	},
+	/**
+	 * Created in 2015-10-07, leeyonghun
+	 */
+	format: function(p_input_format, p_output_format) {
+		var A = this.toString();
+		var B = p_input_format;
+		var C = p_output_format;
+        var rtnValue = C;
+        if (typeof (B) != 'string' || typeof (C) != 'string') {
+            throw new Error('모든 인수는 문자열 형태여야 합니다.');
+            return null;
+        }
+        if (A.length != B.length) {
+            throw new Error('1번째와 2번째 인수의 문자열 길이가 동일해야 합니다.');
+            return null;
+        }
+        /*for (var cnti = 0; cnti < B.length; cnti++) {
+            var x = B.substring(cnti, cnti + 1);
+            if (('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz').indexOf(x) < 0) {
+                throw new Error('2번째 인수로는 A~Z, a~z까지의 영문자만 사용가능 합니다.');
+                return null;
+            }
+        }*/
 
+        var $arr = new Array();
+        var formatData = function (pCharacter, pString, pValue) {
+            this.character = pCharacter;
+            this.string = pString;
+            this.value = pValue;
+        }
+        var prevCharacter = '';
+        var prevString = '';
+        var prevStartIdx = 0;
+        var prevEndIdx = 0;
+        var arrIdx = 0;
+        for (var cnti = 0; cnti < (B + '|').length; cnti++) {
+            var x = (B + '|').substring(cnti, cnti + 1);
+
+            if (prevCharacter != x) {
+                if (cnti > 0) {
+                    $arr[arrIdx] = new formatData(prevCharacter, prevString, A.substring(prevStartIdx, prevEndIdx + 1));
+                    ++arrIdx;
+                }
+                prevStartIdx = cnti;
+                prevCharacter = x;
+                prevString = x;
+                prevEndIdx = cnti;
+            } else {
+                prevString += x;
+                prevEndIdx = cnti;
+            }
+        }
+
+        for (var cnti = 0; cnti < $arr.length; cnti++) {
+            rtnValue = azlib.string.replaceAll(rtnValue, $arr[cnti].string, $arr[cnti].value);
+        }
+
+        return rtnValue;
+	},
+	/**
+	 * Created in 2015-10-07, leeyonghun
+	 */
+	replaceAll: function(p_source_string, p_replace_string) {
+        var rtnValue = '';
+        var remainStr = this.value_object;
+        while (remainStr.indexOf(p_source_string) != - 1) {
+            var replaceStr = remainStr.substring(remainStr.indexOf(p_source_string), remainStr.indexOf(p_source_string) + p_source_string.length);
+            rtnValue += remainStr.substring(0, remainStr.indexOf(p_source_string)) + p_replace_string;
+            remainStr = remainStr.substring(remainStr.indexOf(p_source_string) + p_source_string.length, remainStr.length);
+        }
+        rtnValue += remainStr;
+
+        return rtnValue;
+	},
+	/**
+	 * Created in 2015-10-07, leeyonghun
+	 */
+    reverse: function() {
+        var totCnt;
+		var source = this.value_object;
+        var rtnValue = '';
+
+        totCnt = Number(source.length);
+
+        for (var cnti = 0; cnti < totCnt; cnti++) {
+            var dmy = source.substring(source.length - cnti - 1, source.length - cnti);
+            rtnValue += dmy;
+        }
+        totCnt = null;
+
+        return rtnValue;
+    },
+	/**
+	 * Created in 2015-10-07, leeyonghun
+	 */
+	encode: function(p_encode) {
+		var rtn_value = this.value_object;
+		switch (p_encode) {
+			case "SQL":
+				rtn_value = rtn_value.replaceAll('&nbsp;', '&nbsp');
+				rtn_value = rtn_value.replaceAll('#', '&#35;');
+				rtn_value = rtn_value.replaceAll(';', '&#59;');
+				rtn_value = rtn_value.replaceAll('\'', '&#39;');
+				rtn_value = rtn_value.replaceAll('--', '&#45;&#45;');
+				rtn_value = rtn_value.replaceAll('\\', '&#92;');
+				rtn_value = rtn_value.replaceAll('*', '&#42;');
+				rtn_value = rtn_value.replaceAll('&nbsp', '&nbsp;');
+				break;
+			case "JSON":
+				rtn_value = rtn_value.replaceAll('\\', '\\\\');
+				rtn_value = rtn_value.replaceAll('"', '\\"');
+				rtn_value = rtn_value.replaceAll('\b', '\\b');
+				rtn_value = rtn_value.replaceAll('\f', '\\f');
+				rtn_value = rtn_value.replaceAll('\n', '\\n');
+				rtn_value = rtn_value.replaceAll('\r', '\\r');
+				rtn_value = rtn_value.replaceAll('\t', '\\t');
+				break;
+		}
+		return rtn_value;
+	},
+	/**
+	 * Created in 2015-10-07, leeyonghun
+	 */
+	decode: function(p_decode) {
+		var rtn_value = this.value_object;
+		switch (p_decode) {
+			case "SQL":
+				rtn_value = rtn_value.replaceAll('&nbsp;', '&nbsp');
+				rtn_value = rtn_value.replaceAll('&#42;', '*');
+				rtn_value = rtn_value.replaceAll('&#92;', '\\');
+				rtn_value = rtn_value.replaceAll('&#45;&#45;', '--');
+				rtn_value = rtn_value.replaceAll('&#39;', '\'');
+				rtn_value = rtn_value.replaceAll('&#35;', '#');
+				rtn_value = rtn_value.replaceAll('&#59;', ';');
+				rtn_value = rtn_value.replaceAll('&#35;', '#');
+				rtn_value = rtn_value.replaceAll('&nbsp', '&nbsp;');
+				break;
+			case "JSON":
+				rtn_value = rtn_value.replaceAll('\\t', '\t');
+				rtn_value = rtn_value.replaceAll('\\r', '\r');
+				rtn_value = rtn_value.replaceAll('\\n', '\n');
+				rtn_value = rtn_value.replaceAll('\\f', '\f');
+				rtn_value = rtn_value.replaceAll('\\b', '\b');
+				rtn_value = rtn_value.replaceAll('\\"', '"');
+				rtn_value = rtn_value.replaceAll('\\\\', '\\');
+				break;
+		}
+		return rtn_value;
+	},
+    toAZData: function() {
+    	var rtnValue = new azlib.util.AZData();
+
+    	var json_obj = null;
+    	try { json_obj = JSON.parse(this.value_object); } catch (e) { new Error('json parsing error occured!!'); }
+
+    	if (json_obj != null) {
+			for (var name in json_obj) {
+				rtnValue.add(name, json_obj[name]);
+			}
+		}
 		return rtnValue;
-	},
-	toJSONSafeEncoding: function(p_value) {
-		return p_value.toJSONSafeEncoding();
-	},
-	toJSONSafeDecoding: function(p_value) {
-		return p_value.toJSONSafeDecoding();
-	}
-}
+    },
+    toAZList: function() {
+    	var rtnValue = new azlib.util.AZList();
 
+    	var json_obj = null;
+    	try { json_obj = JSON.parse(this.value_object); } catch (e) { new Error('json parsing error occured!!'); }
+
+    	if (json_obj != null) {
+			for (var cnti=0; cnti<json_obj.length; cnti++) {
+				var json_data = json_obj[cnti];
+				var data = new azlib.util.AZData();
+
+				for (var name in json_data) {
+					data.add(name, json_data[name]);
+				}
+				rtnValue.add(data);
+			}
+		}
+		return rtnValue;
+    }
+}
 azlib.text.AZString.init = function(p_value) { return new azlib.text.AZString(p_value); }
+azlib.text.AZString.init().appendPrototype();
 
 /**
  * 
@@ -1724,13 +1971,27 @@ azlib.util = {
 		this.map_attribute = new azlib.util.AZHashMap();
 	},
 	AZSql: function(p_json) {
-		this.sql_type = p_json.sql_type;
-		this.server = p_json.server;
-		this.port = p_json.port;
-		this.catalog = p_json.catalog;
-		this.id = p_json.id;
-		this.pw = p_json.pw;
-		this.connection_string = p_json.connection_string != undefined ? p_json.connection_string : '';
+		if (typeof(p_json) == 'string') {
+			var json = JSON.parse(p_json);
+			
+			this.set(json);			
+			/*this.sql_type = json.sql_type;
+			this.server = json.server;
+			this.port = json.port;
+			this.catalog = json.catalog;
+			this.id = json.id;
+			this.pw = json.pw;
+			this.connection_string = json.connection_string != undefined ? json.connection_string : '';*/
+		}
+		else {
+			this.sql_type = p_json.sql_type;
+			this.server = p_json.server;
+			this.port = p_json.port;
+			this.catalog = p_json.catalog;
+			this.id = p_json.id;
+			this.pw = p_json.pw;
+			this.connection_string = p_json.connection_string != undefined ? p_json.connection_string : '';
+		}
 	}
 }
 
@@ -1851,9 +2112,9 @@ azlib.util.AZData.prototype = {
 					this.get(cnti).toString();
 			}
 			else {
-				var value_string = this.getString(cnti);
+				var value_object = this.getString(cnti);
 				rtnValue += (cnti > 0 ? ', ' : '') + '"' + this.getKey(cnti) + '"' + ':' + 
-					'"' + value_string + '"';
+					'"' + value_object + '"';
 			}
 		}
 		return rtnValue;
@@ -1870,9 +2131,9 @@ azlib.util.AZData.prototype = {
 					this.get(cnti).toJsonString();
 			}
 			else {
-				var value_string = this.getString(cnti);
+				var value_object = this.getString(cnti);
 				rtnValue += (cnti > 0 ? ', ' : '') + '"' + this.getKey(cnti).toJSONSafeEncoding() + '"' + ':' + 
-					'"' + value_string.toJSONSafeEncoding() + '"';
+					'"' + value_object.toJSONSafeEncoding() + '"';
 			}
 		}
 		return '{' + rtnValue + '}';
@@ -1933,13 +2194,13 @@ azlib.util.AZList.prototype = {
 	}
 }
 
-azlib.util.AZSql.SQL_TYPE_MYSQL = 'mysql';
+/*azlib.util.AZSql.SQL_TYPE_MYSQL = 'mysql';
 azlib.util.AZSql.SQL_TYPE_SQLITE = 'sqlite';
 azlib.util.AZSql.SQL_TYPE_MSSQL = 'mssql';
 azlib.util.AZSql.SQL_TYPE_MARIADB = 'mariadb';
-azlib.util.AZSql.SQL_TYPE_ORACLE = 'oracle';
+azlib.util.AZSql.SQL_TYPE_ORACLE = 'oracle';*/
 
-azlib.util.AZSql.ATTRIBUTE_COLUMN_LABEL = 'attribute_column_label';
+/*azlib.util.AZSql.ATTRIBUTE_COLUMN_LABEL = 'attribute_column_label';
 azlib.util.AZSql.ATTRIBUTE_COLUMN_NAME = 'attribute_column_name';
 azlib.util.AZSql.ATTRIBUTE_COLUMN_TYPE = 'attribute_column_type';
 azlib.util.AZSql.ATTRIBUTE_COLUMN_TYPE_NAME = 'attribute_column_type_name';
@@ -1952,9 +2213,37 @@ azlib.util.AZSql.ATTRIBUTE_COLUMN_IS_CASE_SENSITIVE = 'attribute_column_case_sen
 azlib.util.AZSql.ATTRIBUTE_COLUMN_IS_NULLABLE = 'attribute_column_is_nullable';
 azlib.util.AZSql.ATTRIBUTE_COLUMN_IS_READONLY = 'attribute_column_is_readonly';
 azlib.util.AZSql.ATTRIBUTE_COLUMN_IS_WRITABLE = 'attribute_column_is_writable';
-azlib.util.AZSql.ATTRIBUTE_COLUMN_IS_SIGNED = 'attribute_column_is_signed';
+azlib.util.AZSql.ATTRIBUTE_COLUMN_IS_SIGNED = 'attribute_column_is_signed';*/
 
-azlib.util.AZSql.init = function() { return new azlib.util.AZSql(); }
+azlib.util.AZSql.SQL_TYPE = {
+	MYSQL: 'MYSQL', 
+	MSSQL_2000: 'MSSQL_2000', 
+	SQLITE: 'SQLITE', 
+	SQLITE_ANDROID: 'SQLITE_ANDROID', 
+	MSSQL: 'MSSQL', 
+	MARIADB: 'MARIADB', 
+	ORACLE: 'ORACLE'
+}
+
+azlib.util.AZSql.ATTRIBUTE_COLUMN = {
+	LABEL: 'attribute_column_label',
+	NAME: 'attribute_column_name',
+	TYPE: 'attribute_column_type',
+	TYPE_NAME: 'attribute_column_type_name', 
+	SCHEMA_NAME: 'attribute_column_schema_name',
+	DISPLAY_SIZE: 'attribute_column_display_size',
+	SCALE: 'attribute_column_scale',
+	PRECISION: 'attribute_column_precision',
+	AUTO_INCREMENT: 'attribute_column_auto_increment',
+	CASE_SENSITIVE: 'attribute_column_case_sensitive',
+	IS_NULLABLE: 'attribute_column_is_nullable',
+	IS_READONLY: 'attribute_column_is_readonly',
+	IS_WRITABLE: 'attribute_column_is_writable',
+	IS_SIGNED: 'attribute_column_is_signed'
+}
+
+//"{sql_type:mysql, server:127.0.0.1, port:3306, id:user, pw:password, catalog:database}"
+azlib.util.AZSql.init = function(p_json_string) { return new azlib.util.AZSql(p_json_string); }
 azlib.util.AZSql.prototype = {
 	sql_type: '', 
 	connection_string: '', 	// mysql://user:pass@host/db?debug=true&charset=BIG5_CHINESE_CI&timezone=-0700
@@ -1972,7 +2261,7 @@ azlib.util.AZSql.prototype = {
 
 		this.sql_type = p_json.sql_type;
 
-		if (p_json.connection_string.length > 0) {
+		if (p_json.connection_string && p_json.connection_string.length > 0) {
 			this.connection_string = p_json.connection_string;
 		}
 		else {
@@ -1988,19 +2277,45 @@ azlib.util.AZSql.prototype = {
 			this.catalog = p_json.catalog;
 
 			switch (this.sql_type) {
-				case azlib.util.AZSql.SSQL_TYPE_MYSQL:
+				case azlib.util.AZSql.SQL_TYPE.MYSQL:
 					this.connection_string = 'mysql://' + this.id + ':' + this.pw + '@' + 
 						this.server + ':' + this.port + '/' + this.catalog;
 					break;
-				case azlib.util.AZSql.SSQL_TYPE_SQLITE:
+				case azlib.util.AZSql.SQL_TYPE.SQLITE:
 					break;
-				case azlib.util.AZSql.SSQL_TYPE_SQLITE_ANDROID:
+				case azlib.util.AZSql.SQL_TYPE.SQLITE_ANDROID:
 					break;
-				case azlib.util.AZSql.SSQL_TYPE_MSSQL:
+				case azlib.util.AZSql.SQL_TYPE.MSSQL_2000:
+					this.connection_string  = {
+						userName: this.id,
+						password: this.pw,
+						server: this.server,
+						options: {
+							database: this.catalog,
+							port: this.port,
+							driver: 'SQL Server Native Client 11.0',
+							tdsVersion: '7_1' // sqlserver2000 접속용 옵션값
+						},
+						debug: {packet: true, data: true, payload: true, token: true, log: true}
+					};
 					break;
-				case azlib.util.AZSql.SSQL_TYPE_MARIADB:
+				case azlib.util.AZSql.SQL_TYPE.MSSQL:
+					this.connection_string  = {
+						userName: this.id,
+						password: this.pw,
+						server: this.server,
+						options: {
+							database: this.catalog,
+							port: this.port,
+							driver: 'SQL Server Native Client 11.0',
+							//tdsVersion: '7_1' // sqlserver2000 접속용 옵션값
+						},
+						debug: {packet: true, data: true, payload: true, token: true, log: true}
+					};
 					break;
-				case azlib.util.AZSql.SSQL_TYPE_ORACLE:
+				case azlib.util.AZSql.SQL_TYPE.MARIADB:
+					break;
+				case azlib.util.AZSql.SQL_TYPE.ORACLE:
 					break;
 			}
 		}
@@ -2013,8 +2328,8 @@ azlib.util.AZSql.prototype = {
 		}
 		var sql = null;
 
-		if (this.sql_type == azlib.util.AZSql.SQL_TYPE_MYSQL) {
-			sql = require('mysql');
+		if (this.sql_type == azlib.util.AZSql.SQL_TYPE.MYSQL) {
+			sql = require('MYSQL');
 			if (this.connection_string != '') {
 				this.connection = sql.createConnection(this.connection_string);
 			}
@@ -2040,6 +2355,10 @@ azlib.util.AZSql.prototype = {
 			);
 			this.connected = true;
 		}
+		else if (this.sql_type == azlib.util.AZSql.SQL_TYPE.MSSQL_2000) {
+			sql = require('tedious').Connection;
+			this.connection = new sql(this.connection_string);
+		}
 	},
 	close: function() {
 		if (this.connected) {
@@ -2059,18 +2378,47 @@ azlib.util.AZSql.prototype = {
 		}
 
 		this.open();
-
-		this.connection.query(p_json.query, 
-			function(p_err, p_rows, p_fields) {
-				if (p_err) {
-					if (p_json.failure) {
-						p_json.failure(p_err);
-						return;
+		
+		switch (this.sql_type) {
+			case "MYSQL":
+				this.connection.query(p_json.query, 
+					function(p_err, p_rows, p_fields) {
+						if (p_err) {
+							if (p_json.failure) {
+								p_json.failure(p_err);
+								return;
+							}
+						}
+						p_json.success({result: p_rows, fields: p_fields, error: p_err});
 					}
-				}
-				p_json.success({result: p_rows, fields: p_fields, error: p_err});
-			}
-		);
+				);
+				break;
+			case "MSSQL_2000":
+				var $con = this.connection;
+				this.connection.on('connect', 
+					function(err) {
+						var rtnValue = '';
+								
+						this.connected = true;
+						var Request = require('tedious').Request;
+						var request = new Request(p_json.query, 
+							function(p_err, rowCount) {
+								if (p_err) { p_json.failure(p_err); }
+      							$con.close();
+								return;
+							}
+						);
+						request.on('done', 
+							function(rowCount, more) {
+								p_json.success({result: rowCount, more: more});
+							}
+						);
+						$con.execSqlBatch(request);
+					}
+				);
+				break;
+		}
+
 
 		this.close();
 	},
@@ -2087,29 +2435,62 @@ azlib.util.AZSql.prototype = {
 
 		this.open();
 
-		this.connection.query(p_json.query, 
-			function(p_err, p_rows, p_fields) {
-				var rtnValue = '';
-
-				if (p_err) {
-					if (p_json.failure) {
-						p_json.failure(p_err);
-						return;
-					}
-				}
-
-				if (p_rows.length > 0) {
-					for (var name in p_rows[0]) {
-						if (p_rows[0][name]) {
-							rtnValue = p_rows[0][name];
-							break;
+		switch (this.sql_type) {
+			case "MYSQL":
+				this.connection.query(p_json.query, 
+					function(p_err, p_rows, p_fields) {
+						var rtnValue = '';
+		
+						if (p_err) {
+							if (p_json.failure) {
+								p_json.failure(p_err);
+								return;
+							}
 						}
+		
+						if (p_rows.length > 0) {
+							for (var name in p_rows[0]) {
+								if (p_rows[0][name]) {
+									rtnValue = p_rows[0][name];
+									break;
+								}
+							}
+						}
+						rtnValue = String(rtnValue);
+						p_json.success(rtnValue);
 					}
-				}
-				rtnValue = String(rtnValue);
-				p_json.success({result: rtnValue, error: p_err});
-			}
-		);
+				);
+				break;
+			case "MSSQL_2000":
+				var $con = this.connection;
+				this.connection.on('connect', 
+					function(err) {
+						var rtnValue = '';
+								
+						this.connected = true;
+						var Request = require('tedious').Request;
+						var request = new Request(p_json.query, 
+							function(p_err, rowCount) {
+								if (p_err) { p_json.failure(p_err); }
+      							$con.close();
+								return;
+							}
+						);
+						request.on('row',
+							function(p_rows) {
+								if (p_rows.length > 0) { rtnValue = p_rows[0]['value']; }
+							} 
+						);
+						request.on('done', 
+							function(rowCount, more) {
+								p_json.success(rtnValue);
+							}
+						);
+						$con.execSqlBatch(request);
+					}
+				);
+				break;
+		}
 
 		this.close();
 	},
@@ -2126,29 +2507,63 @@ azlib.util.AZSql.prototype = {
 
 		this.open();
 
-		this.connection.query(p_json.query, 
-			function(p_err, p_rows, p_fields) {
-				var rtnValue = '';
-
-				if (p_err) {
-					if (p_json.failure) {
-						p_json.failure(p_err);
-						return;
-					}
-				}
-
-				if (p_rows.length > 0) {
-					for (var name in p_rows[0]) {
-						if (p_rows[0][name]) {
-							rtnValue = p_rows[0][name];
-							break;
+		switch (this.sql_type) {
+			case "MYSQL":
+				this.connection.query(p_json.query, 
+					function(p_err, p_rows, p_fields) {
+						var rtnValue = '';
+		
+						if (p_err) {
+							if (p_json.failure) {
+								p_json.failure(p_err);
+								return;
+							}
 						}
+		
+						if (p_rows.length > 0) {
+							for (var name in p_rows[0]) {
+								if (p_rows[0][name]) {
+									rtnValue = p_rows[0][name];
+									break;
+								}
+							}
+						}
+						rtnValue = String(rtnValue).toInt(p_json.default ? p_json.default : 0);
+						p_json.success(rtnValue);
 					}
-				}
-				rtnValue = String(rtnValue).toInt(p_json.default ? p_json.default : 0);
-				p_json.success({result: rtnValue, error: p_err});
-			}
-		);
+				);
+				break;
+			case "MSSQL_2000":
+				var $con = this.connection;
+				this.connection.on('connect', 
+					function(err) {
+						var rtnValue = '';
+								
+						this.connected = true;
+						var Request = require('tedious').Request;
+						var request = new Request(p_json.query, 
+							function(p_err, rowCount) {
+								if (p_err) { p_json.failure(p_err); }
+      							$con.close();
+								return;
+							}
+						);
+						request.on('row',
+							function(p_rows) {
+								if (p_rows.length > 0) { rtnValue = p_rows[0]['value']; }
+								rtnValue = String(rtnValue).toInt(p_json.default ? p_json.default : 0);
+							} 
+						);
+						request.on('done', 
+							function(rowCount, more) {
+								p_json.success(rtnValue);
+							}
+						);
+						$con.execSqlBatch(request);
+					}
+				);
+				break;
+		}
 
 		this.close();
 	},
@@ -2164,36 +2579,73 @@ azlib.util.AZSql.prototype = {
 		}
 
 		this.open();
-
-		this.connection.query(p_json.query, 
-			function(p_err, p_rows, p_fields) {
-				var rtnValue = null;
-
-				if (p_err) {
-					if (p_json.failure) {
-						p_json.failure(p_err);
-						return;
-					}
-				}
-
-				rtnValue = new azlib.util.AZData();
-				if (p_rows.length > 0) {
-					var row = p_rows[0];
-
-					var arrs = new Array();
-					for (var name in row) {
-						if (row[name]) {
-							arrs.push(row[name]);
+		
+		switch (this.sql_type) {
+			case "MYSQL":
+				this.connection.query(p_json.query, 
+					function(p_err, p_rows, p_fields) {
+						var rtnValue = null;
+		
+						if (p_err) {
+							if (p_json.failure) {
+								p_json.failure(p_err);
+								return;
+							}
 						}
+		
+						rtnValue = new azlib.util.AZData();
+						if (p_rows.length > 0) {
+							var row = p_rows[0];
+		
+							var arrs = new Array();
+							for (var name in row) {
+								if (row[name]) {
+									arrs.push(row[name]);
+								}
+							}
+		
+							for (var cnti=0; cnti<p_fields.length; cnti++) {
+								rtnValue.add(p_fields[cnti].name, arrs[cnti]);
+							}
+						}
+						p_json.success({result: rtnValue, error: p_err});
 					}
+				);
+				break;
+			case "MSSQL_2000":
+				var $con = this.connection;
+				this.connection.on('connect', 
+					function(err) {
+						var rtnValue = new azlib.util.AZData();
+								
+						this.connected = true;
+						var Request = require('tedious').Request;
+						var request = new Request(p_json.query, 
+							function(p_err, rowCount) {
+								if (p_err) { p_json.failure(p_err); }
+      							$con.close();
+								return;
+							}
+						);
+						request.on('row',
+							function(p_rows) {
+								//console.log('test:' + JSON.stringify(p_rows));
+								for (var cnti=0; cnti<p_rows.length; cnti++) {
+									rtnValue.add(p_rows[cnti]["metadata"]["colName"], p_rows[cnti]["value"]);
+								}
+							} 
+						);
+						request.on('done', 
+							function(rowCount, more) {
+								p_json.success(rtnValue);
+							}
+						);
+						$con.execSqlBatch(request);
+					}
+				);
+				break;
+		}
 
-					for (var cnti=0; cnti<p_fields.length; cnti++) {
-						rtnValue.add(p_fields[cnti].name, arrs[cnti]);
-					}
-				}
-			    p_json.success({result: rtnValue, error: p_err});
-			}
-		);
 
 		this.close();
 	},
@@ -2209,42 +2661,80 @@ azlib.util.AZSql.prototype = {
 		}
 
 		this.open();
-
-		this.connection.query(p_json.query, 
-			function(p_err, p_rows, p_fields) {
-				var rtnValue = null;
-
-				if (p_err) {
-					if (p_json.failure) {
-						p_json.failure(p_err);
-						return;
-					}
-				}
-
-				rtnValue = new azlib.util.AZList();
-				if (p_rows.length > 0) {
-
-					for (var cnti=0; cnti<p_rows.length; cnti++) {
-						var row = p_rows[cnti];
-						var data = new azlib.util.AZData();
-
-						var arrs = new Array();
-						for (var name in row) {
-							if (row[name]) {
-								arrs.push(row[name]);
+		
+		switch (this.sql_type) {
+			case "MYSQL":
+				this.connection.query(p_json.query, 
+					function(p_err, p_rows, p_fields) {
+						var rtnValue = null;
+		
+						if (p_err) {
+							if (p_json.failure) {
+								p_json.failure(p_err);
+								return;
 							}
 						}
-
-						for (var cntk=0; cntk<p_fields.length; cntk++) {
-							data.add(p_fields[cntk].name, arrs[cntk]);
+		
+						rtnValue = new azlib.util.AZList();
+						if (p_rows.length > 0) {
+		
+							for (var cnti=0; cnti<p_rows.length; cnti++) {
+								var row = p_rows[cnti];
+								var data = new azlib.util.AZData();
+		
+								var arrs = new Array();
+								for (var name in row) {
+									if (row[name]) {
+										arrs.push(row[name]);
+									}
+								}
+		
+								for (var cntk=0; cntk<p_fields.length; cntk++) {
+									data.add(p_fields[cntk].name, arrs[cntk]);
+								}
+		
+								rtnValue.add(data);
+							}
 						}
-
-						rtnValue.add(data);
+						p_json.success({result: rtnValue, error: p_err});
 					}
-				}
-			    p_json.success({result: rtnValue, error: p_err});
-			}
-		);
+				);
+				break;
+			case "MSSQL_2000":
+				var $con = this.connection;
+				this.connection.on('connect', 
+					function(err) {
+						var rtnValues = new azlib.util.AZList();
+						
+						this.connected = true;
+						var Request = require('tedious').Request;
+						var request = new Request(p_json.query, 
+							function(p_err, rowCount) {
+								if (p_err) { p_json.failure(p_err); }
+      							$con.close();
+								return;
+							}
+						);
+						request.on('row',
+							function(p_rows) {
+								var rtnValue = new azlib.util.AZData();
+								for (var cnti=0; cnti<p_rows.length; cnti++) {
+									rtnValue.add(p_rows[cnti]["metadata"]["colName"], p_rows[cnti]["value"]);
+								}
+								rtnValues.add(rtnValue);
+							} 
+						);
+						request.on('done', 
+							function(rowCount, more) {
+								p_json.success(rtnValues);
+							}
+						);
+						$con.execSqlBatch(request);
+					}
+				);
+				break;
+		}
+
 
 		this.close();
 	}
